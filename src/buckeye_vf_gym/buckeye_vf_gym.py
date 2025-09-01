@@ -1,15 +1,15 @@
-"""HUD Gym environment using XML format for tool calls with MCP backend."""
+"""Buckeye Gym environment using XML format for tool calls with MCP backend."""
 
 import json
 import os
 from copy import deepcopy
 
-import hud
+import buckeyelabs
 import verifiers as vf
 import yaml
 from datasets import Dataset
-from hud.clients import MCPClient
-from hud.datasets import Task
+from buckeyelabs.clients import MCPClient
+from buckeyelabs.datasets import Task
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 from verifiers import ChatMessage, Info, Messages, SamplingArgs, State
@@ -17,11 +17,11 @@ from verifiers.parsers.xml_parser import XMLParser
 
 from .mcp_utils import execute_tool
 from .parsers import ToolXMLParser
-from .rubrics import HUDBaseRubric
+from .rubrics import BuckEyeBaseRubric
 
 
-class HUDGym(vf.MultiTurnEnv):
-    """HUD environment using XML format for tool calls with MCP backend."""
+class BuckEyeGym(vf.MultiTurnEnv):
+    """Buckeye environment using XML format for tool calls with MCP backend."""
 
     def __init__(
         self,
@@ -38,12 +38,12 @@ class HUDGym(vf.MultiTurnEnv):
         # Handle job creation from config
         job_config = self.config.get("job", {})
 
-        # Check if HUD_API_KEY is provided
-        assert os.getenv("HUD_API_KEY"), "HUD_API_KEY environment variable must be set"
+        # Check if BUCKEYE_API_KEY is provided
+        assert os.getenv("BUCKEYE_API_KEY"), "BUCKEYE_API_KEY environment variable must be set"
 
         # Create the job from config
-        self.job = hud.create_job(
-            name=job_config.get("name", "HUDGym Run"),
+        self.job = buckeyelabs.create_job(
+            name=job_config.get("name", "BuckEyeGym Run"),
             metadata=job_config.get("metadata", {}),
             dataset_link=job_config.get("dataset_link"),
         )
@@ -68,7 +68,7 @@ class HUDGym(vf.MultiTurnEnv):
         rubric_config = self.config.get("rubric", {})
         rubric_weights = rubric_config.get("weights", None)
 
-        rubric = HUDBaseRubric(parser=self.tool_parser, weights=rubric_weights)
+        rubric = BuckEyeBaseRubric(parser=self.tool_parser, weights=rubric_weights)
 
         super().__init__(
             dataset=dataset,
@@ -92,13 +92,13 @@ class HUDGym(vf.MultiTurnEnv):
 
         return state
 
-    @hud.instrument(
+    @buckeyelabs.instrument(
         span_type="agent",
         record_args=False,
         record_result=True,
     )
     async def get_model_response(self, **kwargs):
-        """Override get_model_response with HUD instrumentation to capture model responses."""
+        """Override get_model_response with Buckeye instrumentation to capture model responses."""
         return await super().get_model_response(**kwargs)
 
     def is_completed(self, messages: Messages, state: State, **kwargs) -> bool:
@@ -178,7 +178,7 @@ class HUDGym(vf.MultiTurnEnv):
         completion: list[ChatMessage] = []
         rollout = deepcopy(prompt)
 
-        # Extract HUD-specific data from info dict (all stored as JSON strings)
+        # Extract Buckeye-specific data from info dict (all stored as JSON strings)
         task_info = info or {}
 
         # Create Task to resolve env vars in mcp_config (only it has ${ENV_VAR} templates)
@@ -196,7 +196,7 @@ class HUDGym(vf.MultiTurnEnv):
         mcp_client = None
 
         try:
-            with hud.trace(f"rollout_{task}", job_id=self.job_id):
+            with buckeyelabs.trace(f"rollout_{task}", job_id=self.job_id):
                 assert mcp_config, "mcp_config must be provided"
                 mcp_client = MCPClient(mcp_config=mcp_config)
                 self.logger.info(f"Initializing MCP client with config: {mcp_config}")
@@ -376,7 +376,7 @@ class HUDGym(vf.MultiTurnEnv):
                     self.logger.error(f"Error during MCP cleanup: {e}")
 
     def __del__(self):
-        """Cleanup method to update job status when HUDGym is destroyed."""
+        """Cleanup method to update job status when BuckEyeGym is destroyed."""
         if hasattr(self, "job") and self.job:
             try:
                 self.job.update_status_sync("completed")

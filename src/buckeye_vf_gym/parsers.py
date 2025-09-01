@@ -1,4 +1,4 @@
-"""Parsers for HUD VF Gym environment."""
+"""Parsers for Buckeye VF Gym environment."""
 
 import re
 from collections.abc import Callable

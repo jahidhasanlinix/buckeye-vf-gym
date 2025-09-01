@@ -1,10 +1,10 @@
-"""Utility functions for MCP HUD Gym."""
+"""Utility functions for MCP Buckeye Gym."""
 
 import logging
 from typing import Any
 
 import mcp.types as types
-from hud.types import MCPToolCall
+from buckeyelabs.types import MCPToolCall
 
 logger = logging.getLogger(__name__)
 

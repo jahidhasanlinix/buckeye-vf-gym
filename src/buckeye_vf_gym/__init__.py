@@ -4,8 +4,8 @@ import json
 
 from datasets import Dataset, load_dataset
 
-from .hud_vf_gym import HUDGym
-from .rubrics import HUDBaseRubric
+from .buckeye_vf_gym import BuckEyeGym
+from .rubrics import BuckEyeBaseRubric
 
 
 def load_environment(
@@ -14,18 +14,18 @@ def load_environment(
     num_tasks: int | None = None,
     split: str = "train",
     **kwargs,
-) -> HUDGym:
-    """Load HUDGym environment from a HuggingFace dataset.
+) -> BuckEyeGym:
+    """Load BuckEyeGym environment from a HuggingFace dataset.
 
     Args:
         taskset: HuggingFace dataset identifier (required)
         config_path: Path to config file (required)
         num_tasks: Optional limit on number of tasks to load
         split: Dataset split to load (default: train)
-        **kwargs: Additional arguments passed to HUDGym
+        **kwargs: Additional arguments passed to BuckEyeGym
 
     Returns:
-        HUDGym: Configured environment
+        BuckEyeGym: Configured environment
     """
     # Load HuggingFace dataset
     hf_dataset: Dataset = load_dataset(taskset, split=split)  # type: ignore
@@ -75,13 +75,13 @@ def load_environment(
         }
     )
 
-    return HUDGym(dataset=dataset, config_path=config_path, **kwargs)
+    return BuckEyeGym(dataset=dataset, config_path=config_path, **kwargs)
 
 
 __version__ = "0.1.0"
 
 __all__ = [
-    "HUDGym",
+    "BuckEyeGym",
     "load_environment",
-    "HUDBaseRubric",
+    "BuckEyeBaseRubric",
 ]
